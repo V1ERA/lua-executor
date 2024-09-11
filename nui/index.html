@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua Code Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.4/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.4/theme/dracula.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #editor-container {
+            width: 600px;
+            height: 400px;
+            background-color: #282A36;
+            border: 2px solid #007acc;
+            padding: 20px;
+            resize: both;
+            overflow: auto;
+            position: relative;
+            border-radius: 8px;
+            min-width: 500px;
+            min-height: 300px;
+            max-width: 1500px;
+            max-height: 800px;
+            box-shadow: 0 0 20px rgba(0, 122, 204, 0.5);
+        }
+        .CodeMirror {
+            height: calc(100% - 50px);
+            font-family: "Consolas", monospace;
+            font-size: 16px;
+        }
+
+        button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            background-color: #005a8c;
+            transform: scale(1.05);
+            box-shadow: 0 0 5px #007acc, 0 0 10px #007acc;
+        }
+
+        #close-button {
+            right: 120px;
+            background-color: #cc0000;
+        }
+
+        #close-button:hover {
+            background-color: #b00000;
+            box-shadow: 0 0 5px #cc0000, 0 0 10px #cc0000;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.4/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.4/mode/lua/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.4/addon/edit/closebrackets.min.js"></script>
+</head>
+<body>
+    <div id="editor-container">
+        <textarea id="editor" placeholder="Loading..."></textarea>
+        <button onclick="executeCode()">Execute</button>
+        <button id="close-button" onclick="closeEditor()">Close</button>
+    </div>
+
+    <script>
+        let editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+            mode: 'text/x-lua',
+            theme: 'dracula',
+            autoCloseBrackets: true
+        });
+
+        window.addEventListener('message', function(event) {
+            if (event.data.action === "showEditor") {
+                document.body.style.display = "flex";
+                document.body.style.opacity = '1';
+            } else if (event.data.action === "hideEditor") {
+                document.body.style.opacity = '0';
+                document.body.style.display = "none";
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'F10') {
+                closeEditor();
+            }
+        });
+
+        function executeCode() {
+            const code = editor.getValue();
+            fetch(`https://${GetParentResourceName()}/executeCode`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            });
+        }
+
+        function closeEditor() {
+            fetch(`https://${GetParentResourceName()}/closeEditor`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+        }
+    </script>
+</body>
+</html>
